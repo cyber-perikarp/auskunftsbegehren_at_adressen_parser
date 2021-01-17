@@ -10,18 +10,15 @@ before_install:
 
 install:
   - ./update.sh
+  - ./prepare.sh # This needs to be done before the exporters run
 
 before_script:
-  - ./.exporter/import_check.sh
-  - ./.exporter/check_plz_against_database.py
-  - ./.download/prepare.sh # This needs to be done before the exporters run
-  - $(npm bin)/gulp compile
-  - ./generator.py --loglevel INFO --source $HOME/auskunftsbegehren_at_adressen
-  - $(npm bin)/gulp subresource-integrity
+  - ./check_plz_against_database.py
 
 script:
-  - ./.exporter/exporter.sh
-  - ./.exporter/export_check.sh
+  - $(npm bin)/gulp compile
+  - ./generic_csv_exporter.py --loglevel INFO --source $HOME/auskunftsbegehren_at_adressen
+  - $(npm bin)/gulp subresource-integrity
 
 after_success:
   - find upload/ -type f -name "*.html" -exec minify {} --type html -o {} \;
