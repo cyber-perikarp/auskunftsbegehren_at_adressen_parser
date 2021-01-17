@@ -5,10 +5,8 @@ import csv
 import argparse
 import sys
 import os
-import json
 import logzero
 from logzero import logger as log
-from jinja2 import Environment, FileSystemLoader
 from locale import strxfrm
 
 #### Config ####
@@ -55,14 +53,14 @@ administrationLevels = {
     "wien": "Wien"
 }
 
-# Postleitzahlendatenbank einlesen
+# read in file with plz
 plzFile = open(workDir + "/plz_verzeichnis.csv", newline="")
 plzDict = csv.DictReader(plzFile)
 plz = {}
 for row in plzDict:
     plz[row["PLZ"]] = (row["Ort"], row["Bundesland"])
 
-# Alle leerzeichen, bindestriche, klammern etc aus telefon und faxnummer entfernen
+# remove spaces etc from phone number
 def sanitizePhoneNumber(number):
     number = number.replace(" ", "")
     number = number.replace("-", "")
@@ -74,7 +72,7 @@ def sanitizePhoneNumber(number):
     log.debug("Sanitized Phone Number: {0}".format(number))
     return number
 
-# Hier wird geprüft ob die notwendigen Felder vorhanden sind
+# Are all required fields filled?
 def checkIfFullRecord(record):
     if (not record["Id"]
         or not record["Name"]
@@ -90,7 +88,7 @@ def populateGeneratedFields(record):
     record["Tel"] = sanitizePhoneNumber(record["Tel"])
     record["Fax"] = sanitizePhoneNumber(record["Fax"])
 
-    # Postleitzahl aus Postleitzahlendatenbank
+    # plz from db
     record["Ort"] = plz[record["PLZ"]][0]
 
     record["Ebene"] = ' '.join([administrationLevels.get(i, i) for i in record["Ordner"].split()])
@@ -99,7 +97,7 @@ def populateGeneratedFields(record):
 
     return record
 
-# Header schreiben
+# Write Header
 try:
     with open(outFile, "w") as outFileHandler:
         log.debug("Headers: {0}".format(str(csvHeader)))
