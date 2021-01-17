@@ -70,7 +70,7 @@ def populateGeneratedFields(record):
     recordToReturn["country"] = "AT"
     recordToReturn["requires_identification"] = ""
     recordToReturn["operating_countries"] = ""
-    recordToReturn["custom_identifier"] = "{0}_{1}_{2}_{3}".format(record["Branche"], record["Ebene"], record["Ort"].replace(" ", "-"), record["Pruefung"].replace(".", "-"))
+    recordToReturn["custom_identifier"] = "{0}_{1}_{2}_{3}_{4}".format(record["Branche"], record["Ebene"], record["Ort"].replace(" ", "-"), record["Pruefung"].replace(".", "-"), record["Name"].replace(" ", "-"))
     recordToReturn["identifiers"] = ""
     recordToReturn["generic_url"] = ""
     recordToReturn["generic_email"] = record["E-Mail"]
