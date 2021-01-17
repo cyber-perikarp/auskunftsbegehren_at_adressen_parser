@@ -37,7 +37,7 @@ log.info("Source folder: {0}".format(sourceFolder))
 
 # Hardcoded Paramaters
 outFile = workDir + "/upload/generic.csv"
-csvHeader = ["Name", "Name_Lang", "Branche", "Typ", "Adresse", "PLZ", "Ort", "Ebene", "E-Mail", "Homepage", "Tel", "Fax", "Datenquelle", "Pruefung"]
+csvHeader = ["Name", "Name_Lang", "Branche", "Typ", "Adresse", "PLZ", "Ort", "Bundesland", "Ebene", "E-Mail", "Homepage", "Tel", "Fax", "Datenquelle", "Pruefung"]
 foldersToIgnore = [".", "..", "upload", ".git", "docs"]
 administrationLevels = {
     "bund": "Bund",
@@ -88,8 +88,9 @@ def populateGeneratedFields(record):
     record["Tel"] = sanitizePhoneNumber(record["Tel"])
     record["Fax"] = sanitizePhoneNumber(record["Fax"])
 
-    # plz from db
+    # city and state from db
     record["Ort"] = plz[record["PLZ"]][0]
+    record["Bundesland"] = plz[record["PLZ"]][1]
 
     record["Ebene"] = ' '.join([administrationLevels.get(i, i) for i in record["Ordner"].split()])
 
