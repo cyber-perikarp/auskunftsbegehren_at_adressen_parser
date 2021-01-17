@@ -1,6 +1,4 @@
-chromalog
 qrcode[pil]
 weasyprint
 jinja2
-pytz
 logzero

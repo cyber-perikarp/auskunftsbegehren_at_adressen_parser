@@ -1,39 +1,46 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-#######################
-# Genereller Exporter #
-#         CSV         ä
-#######################
-
 import csv
-import os
-import logging
-import chromalog
-import sys
 import argparse
-from collections import OrderedDict
-from operator import getitem
+import sys
+import os
+import json
+import logzero
+from logzero import logger as log
+from jinja2 import Environment, FileSystemLoader
+from locale import strxfrm
 
-# CLI Parameter
+#### Config ####
+# CLI Params
 parser = argparse.ArgumentParser("generic_csv_exporter.py")
-parser.add_argument("--loglevel", help="DEBUG, INFO, ERROR, CRITICAL")
-
+parser.add_argument("--loglevel", help="DEBUG, INFO, ERROR, CRITICAL. Default INFO")
+parser.add_argument("--jsonlog", help="Log output as JSON. Default no")
+parser.add_argument("--source", help="Path to inventory.csv. Default ~/auskunftsbegehren_at_adressen")
 args = vars(parser.parse_args())
 
-# Logging stuff
-loglevel = getattr(sys.modules["logging"], args["loglevel"].upper() if args["loglevel"] else "INFO")
+# Logging
+loglevelFromCli = getattr(sys.modules["logging"], args["loglevel"].upper() if args["loglevel"] else "INFO")
+jsonLogFromCli = args["jsonlog"].upper() if args["jsonlog"] else "N"
+logzero.loglevel(loglevelFromCli)
 
-chromalog.basicConfig(format="%(message)s", level=loglevel)
-logger = logging.getLogger()
+# Do we want to log as json?
+if (jsonLogFromCli == "Y" or jsonLogFromCli == "YES"):
+    logzero.json()
 
-# In diesem Ordner sind wir
-workDir = os.path.dirname(os.path.realpath(__file__)) + "/.."
+log.debug("Command Line Parameters: {0}".format(args))
 
-# Hardgecodede Parameter
-outFile = workDir + "/generic.csv"
+# This is the current folder
+workDir = os.path.dirname(os.path.realpath(__file__))
+
+# Defaults
+sourceFolder = args["source"] if args["source"] else "~/auskunftsbegehren_at_adressen"
+log.info("Source folder: {0}".format(sourceFolder))
+
+# Hardcoded Paramaters
+outFile = workDir + "/upload/generic.csv"
 csvHeader = ["Name", "Name_Lang", "Branche", "Typ", "Adresse", "PLZ", "Ort", "Ebene", "E-Mail", "Homepage", "Tel", "Fax", "Datenquelle", "Pruefung"]
-foldersToIgnore = [".", "..", ".exporter", "docs", "upload", ".git", ".github"]
+foldersToIgnore = [".", "..", "upload", ".git", "docs"]
 administrationLevels = {
     "bund": "Bund",
     "burgenland": "Burgenland",
@@ -49,7 +56,7 @@ administrationLevels = {
 }
 
 # Postleitzahlendatenbank einlesen
-plzFile = open(workDir + "/.exporter/plz_verzeichnis.csv", newline="")
+plzFile = open(workDir + "/plz_verzeichnis.csv", newline="")
 plzDict = csv.DictReader(plzFile)
 plz = {}
 for row in plzDict:
@@ -64,7 +71,7 @@ def sanitizePhoneNumber(number):
     number = number.replace(")", "")
     number = number.replace("'", "") # Wegen LibreOffice
     number = number.replace("‘", "") # Auch wegen LibreOffice
-    logger.debug("Sanitized Phone Number: " + number)
+    log.debug("Sanitized Phone Number: {0}".format(number))
     return number
 
 # Hier wird geprüft ob die notwendigen Felder vorhanden sind
@@ -75,7 +82,7 @@ def checkIfFullRecord(record):
         or not record["Adresse"]
         or not record["PLZ"]
         or not record["Pruefung"]):
-            logger.error("Not exporting: " + record["Name"])
+            log.error("Not exporting: {0}".format(record["Name"]))
             return False
     return True
 
@@ -88,59 +95,66 @@ def populateGeneratedFields(record):
 
     record["Ebene"] = ' '.join([administrationLevels.get(i, i) for i in record["Ordner"].split()])
 
-    logger.debug("Found city: " + record["Ort"])
+    log.debug("Found city: {0}".format(record["Ort"]))
 
     return record
 
 # Header schreiben
 try:
     with open(outFile, "w") as outFileHandler:
-        logger.debug("Headers: " + str(csvHeader))
-        writer = csv.DictWriter(outFileHandler, fieldnames=csvHeader)
+        log.debug("Headers: {0}".format(str(csvHeader)))
+        writer = csv.DictWriter(outFileHandler, fieldnames=csvHeader, quoting=csv.QUOTE_ALL)
         writer.writeheader()
 except IOError:
-    logger.critical("Cant write to file!")
+    log.critical("Cant write to file!")
     exit(1)
 
-logger.debug(sorted(os.listdir(workDir)))
+log.debug(os.listdir(sourceFolder))
 
 recordsToWrite = []
-# Alle Unterordner laden, außer die die wir ignorieren wollen
-for folder in [x for x in sorted(os.listdir(workDir)) if (os.path.isdir(x) and x not in foldersToIgnore)]:
-    # Hier werden schon die csvs geladen
-    for csvFile in [x for x in os.listdir(workDir + "/" + folder) if os.path.splitext(x)[1] == ".csv"]:
-        # Pfad zur csv
-        csvFile = workDir + "/" + folder + "/" + csvFile
-        logger.info("Using File: " + csvFile)
+# Iterate through all folders exept the ones we want to ingore
+for folder in [x for x in os.listdir(sourceFolder) if (os.path.isdir(sourceFolder + "/" + x) and x not in foldersToIgnore)]:
+    log.debug("Folder: {0}".format(folder))
+    # Load the csvs
+    for csvFile in [x for x in os.listdir(sourceFolder + "/" + folder) if os.path.splitext(x)[1] == ".csv"]:
+        # path to the file
+        csvFile = sourceFolder + "/" + folder + "/" + csvFile
+        log.info("Using File: {0}".format(csvFile))
 
-        # csv lesen und parsen
+        # read the file
         with open(csvFile, newline='') as csvFileReader:
             readFile = csv.DictReader(csvFileReader)
             for record in readFile:
-                record["Ordner"] = folder # Wir brauchen das zum sortieren später
+                record["Ordner"] = folder # we need this field later for sorting
 
-                # Unvollständige Datensätze werden nicht eingefügt
+                # only insert records that have the required fields
                 if (checkIfFullRecord(record)):
-                    logger.debug("Processing entry: " + record["Name"])
+                    log.debug("Processing entry: {0}".format(record["Name"]))
                     record = populateGeneratedFields(record)
-                    logger.debug(record)
+                    log.debug(record)
                     recordsToWrite.append(record)
 
-sortedRecords = sorted(recordsToWrite, key = lambda tup: (tup["Ordner"], tup["Branche"], tup["Typ"], tup["Name"]))
-logger.debug(sortedRecords)
+sortedRecords = sorted(recordsToWrite, key = lambda tup: (
+            strxfrm(tup["Ordner"].lower()),
+            strxfrm(tup["Branche"].lower()),
+            strxfrm(tup["Typ"].lower()),
+            strxfrm(tup["Name"].lower()))
+        )
+
+log.debug(sortedRecords)
 
 for entry in sortedRecords:
-    # CSV schreiben!
+    # write the csv
     try:
         with open(outFile, "a+") as outFileHandler:
             del entry["Ordner"]
             del entry["Id"]
 
-            logger.debug("Writing entry: " + entry["Name"])
+            log.debug("Writing entry: {0}".format(entry["Name"]))
 
-            writer = csv.DictWriter(outFileHandler, fieldnames=csvHeader)
+            writer = csv.DictWriter(outFileHandler, fieldnames=csvHeader, quoting=csv.QUOTE_ALL)
             writer.writerow(entry)
 
     except IOError:
-        logger.critical("Cant write to file!")
+        log.critical("Cant write to file!")
         exit(1)
