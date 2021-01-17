@@ -9,13 +9,13 @@ import csv
 import os
 
 # In diesem Ordner sind wir
-workDir = os.path.dirname(os.path.realpath(__file__)) + "/.."
+workDir = os.path.dirname(os.path.realpath(__file__))
 
 # Hardgecodede Parameter
-foldersToIgnore = [".", "..", ".exporter", "docs", "upload", ".git", ".github"]
+foldersToIgnore = [".", "..", "upload", ".git"]
 
 # Postleitzahlendatenbank einlesen
-plzFile = open(workDir + "/.exporter/plz_verzeichnis.csv", newline="")
+plzFile = open(workDir + "/plz_verzeichnis.csv", newline="")
 plzDict = csv.DictReader(plzFile)
 plz = {}
 for row in plzDict:

@@ -2,36 +2,40 @@ dist: focal
 language: python
 os: linux
 
+before_install:
+  - curl -sL https://deb.nodesource.com/setup_15.x | sudo -E bash -
+  - sudo apt-get install -y rsync minify nodejs
+  - pip install -r requirements.txt
+  - npm install
+
 install:
-  - sudo add-apt-repository -y ppa:longsleep/golang-backports > /dev/null
-  - sudo apt-get install -y golang-go wget rsync minify npm > /dev/null
-  - export GOPATH=/tmp/go && go get github.com/Clever/csvlint/cmd/csvlint > /dev/null
-  - pip install -r .exporter/requirements.txt > /dev/null
-  - npm install --global uglify-js uglifycss > /dev/null
+  - ./update.sh
 
 before_script:
   - ./.exporter/import_check.sh
   - ./.exporter/check_plz_against_database.py
   - ./.download/prepare.sh # This needs to be done before the exporters run
+  - $(npm bin)/gulp compile
+  - ./generator.py --loglevel INFO --source $HOME/auskunftsbegehren_at_adressen
+  - $(npm bin)/gulp subresource-integrity
 
 script:
   - ./.exporter/exporter.sh
   - ./.exporter/export_check.sh
 
-before_deploy:
-  - cd $TRAVIS_BUILD_DIR
-  - echo "auskunftsbegehren-adressen.cyber-perikarp.eu" > upload/CNAME
-  - ./.download/minify.sh # Minify html, css and js
+after_success:
+  - find upload/ -type f -name "*.html" -exec minify {} --type html -o {} \;
+  - find upload/ -type f -name "*.html" -exec echo "{}" \; -exec $(npm bin)/html-validator --file={} \;
 
 deploy:
   provider: pages
   token: $GITHUB_TOKEN
   keep_history: true
-  local_dir: upload
+  local_dir: $TRAVIS_BUILD_DIR/upload
   strategy: git
   edge: true
-  skip_cleanup: true
   target_branch: gh-pages
+  fqdn: auskunftsbegehren-adressen.cyber-perikarp.eu
   committer_from_gh: true
   on:
-    branch: master
+    branch: main
