@@ -1,0 +1,3 @@
+chromalog
+qrcode[pil]
+weasyprint
