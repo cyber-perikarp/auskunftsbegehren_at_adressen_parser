@@ -15,5 +15,8 @@ prepare:
 fetch:
 	bash data/update.sh
 
+check:
+	$(MAKE) -C check all
+
 csv:
 	$(MAKE) -C csv_export all
