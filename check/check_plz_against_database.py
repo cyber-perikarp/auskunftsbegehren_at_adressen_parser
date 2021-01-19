@@ -16,7 +16,7 @@ workDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__
 foldersToIgnore = [".", "..", "upload", ".git", "docs"]
 
 parser = argparse.ArgumentParser("generic_csv_exporter.py")
-parser.add_argument("--source", help="Path to inventory.csv. Default ~/auskunftsbegehren_at_adressen")
+parser.add_argument("--source", help="Path to data source folder. Default ~/auskunftsbegehren_at_adressen")
 args = vars(parser.parse_args())
 sourceFolder = args["source"] if args["source"] else "~/auskunftsbegehren_at_adressen"
 

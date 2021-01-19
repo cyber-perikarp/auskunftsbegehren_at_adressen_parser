@@ -14,7 +14,7 @@ from locale import strxfrm
 parser = argparse.ArgumentParser("generic_csv_exporter.py")
 parser.add_argument("--loglevel", help="DEBUG, INFO, ERROR, CRITICAL. Default INFO")
 parser.add_argument("--jsonlog", help="Log output as JSON. Default no")
-parser.add_argument("--source", help="Path to inventory.csv. Default ~/auskunftsbegehren_at_adressen")
+parser.add_argument("--source", help="Path to data source folder. Default ~/auskunftsbegehren_at_adressen")
 args = vars(parser.parse_args())
 
 # Logging
