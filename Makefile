@@ -15,7 +15,7 @@ prepare:
 fetch:
 	bash data/update.sh
 
-check:
+checkplz:
 	$(MAKE) -C check all
 
 csv:

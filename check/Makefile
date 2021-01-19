@@ -1,2 +1,2 @@
-all: generic noyb
-	$(PYTHON) 
+all:
+	$(PYTHON) check_plz_against_database.py --source ${DATA_SOURCE}

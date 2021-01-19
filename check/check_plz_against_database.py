@@ -21,7 +21,7 @@ args = vars(parser.parse_args())
 sourceFolder = args["source"] if args["source"] else "~/auskunftsbegehren_at_adressen"
 
 # Read in the plz database
-plzFile = open(workDir + "/plz_verzeichnis.csv", newline="")
+plzFile = open(workDir + "/data/plz_verzeichnis.csv", newline="")
 plzDict = csv.DictReader(plzFile)
 plz = {}
 for row in plzDict:
@@ -33,7 +33,7 @@ for folder in [x for x in os.listdir(sourceFolder) if (os.path.isdir(sourceFolde
     for csvFile in [x for x in os.listdir(sourceFolder + "/" + folder) if os.path.splitext(x)[1] == ".csv"]:
         # path to the file
         csvFile = sourceFolder + "/" + folder + "/" + csvFile
-        log.info("Using File: {0}".format(csvFile))
+        print("Checking File: {0}".format(csvFile))
 
         # read the csv and parse it
         with open(csvFile, newline='') as csvFileReader:
