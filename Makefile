@@ -1,5 +1,5 @@
-PYTHON = "python3"
-DATA_SOURCE = "~/auskunftsbegehren_at_adressen"
+PYTHON = python3
+DATA_SOURCE = ~/auskunftsbegehren_at_adressen
 export
 
 csv:
