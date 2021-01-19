@@ -1,0 +1,2 @@
+all: generic noyb
+	$(PYTHON) 
