@@ -31,8 +31,8 @@ if (jsonLogFromCli == "Y" or jsonLogFromCli == "YES"):
 
 log.debug("Command Line Parameters: {0}".format(args))
 
-# This is the current folder
-workDir = os.path.dirname(os.path.realpath(__file__))
+# workDir is the parent folder
+workDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 
 # Defaults
 sourceFile = workDir + "/upload/generic.csv"

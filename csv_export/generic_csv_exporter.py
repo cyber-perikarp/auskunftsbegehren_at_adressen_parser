@@ -28,8 +28,8 @@ if (jsonLogFromCli == "Y" or jsonLogFromCli == "YES"):
 
 log.debug("Command Line Parameters: {0}".format(args))
 
-# This is the current folder
-workDir = os.path.dirname(os.path.realpath(__file__))
+# workDir is the parent folder
+workDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 
 # Defaults
 sourceFolder = args["source"] if args["source"] else "~/auskunftsbegehren_at_adressen"
@@ -54,7 +54,7 @@ administrationLevels = {
 }
 
 # read in file with plz
-plzFile = open(workDir + "/plz_verzeichnis.csv", newline="")
+plzFile = open(workDir + "/data/plz_verzeichnis.csv", newline="")
 plzDict = csv.DictReader(plzFile)
 plz = {}
 for row in plzDict:
