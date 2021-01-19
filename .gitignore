@@ -1,6 +1,4 @@
 upload
 .~lock*
 .vscode
-noyb.csv
-general.*
-package-lock.json
+node_modules
