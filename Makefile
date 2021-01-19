@@ -1,6 +1,7 @@
 PYTHON = python3
 DATA_SOURCE = ~/auskunftsbegehren_at_adressen
-SOURCE_REPO=https://github.com/cyber-perikarp/auskunftsbegehren_at_adressen
+SOURCE_REPO = https://github.com/cyber-perikarp/auskunftsbegehren_at_adressen
+LOGLEVEL = INFO
 export
 
 .PHONY: default
