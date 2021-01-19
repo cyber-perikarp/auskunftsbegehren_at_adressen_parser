@@ -11,7 +11,7 @@
     "gulp-terser": "2.0.1",
     "html-validator-cli": "^7.0.1",
     "node-sass": "5.0.0",
-    "terser": "5.5.1",
+    "terser": "5.5.1"
   },
   "name": "auskunftsbegehren_at_adressen"
 }
