@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Sebastian Elisa Pfeifer <sebastian@sebastian-elisa-pfeifer.eu>
 
-sourceRepo="https://github.com/cyber-perikarp/auskunftsbegehren_at_adressen"
-targetFolder="$HOME/auskunftsbegehren_at_adressen"
+sourceRepo=${1}
+targetFolder=${2}
 
 # If the repo with the "database" is not present, clone it from github, otherwise do a git pull
 if [ -d ${targetFolder} ]; then

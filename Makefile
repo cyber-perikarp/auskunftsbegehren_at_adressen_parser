@@ -8,14 +8,16 @@ export
 default:
 	@echo "pls specify target"
 
-prepare:
+clean:
 	rm -rf upload
+
+prepare:
 	mkdir -p upload/qrcodes
 
 fetch:
-	bash data/update.sh
+	bash data/update.sh $(SOURCE_REPO) $(DATA_SOURCE)
 
-checkplz:
+validate:
 	$(MAKE) -C check all
 
 csv:
