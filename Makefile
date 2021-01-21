@@ -4,21 +4,19 @@ SOURCE_REPO = https://github.com/cyber-perikarp/auskunftsbegehren_at_adressen
 LOGLEVEL = INFO
 export
 
-.PHONY: default
-default:
-	@echo "pls specify target"
+all: validate csv
 
 clean:
 	rm -rf upload
 
-prepare:
+prepare: clean
 	mkdir -p upload/qrcodes
 
-fetch:
+fetch: prepare
 	bash data/update.sh $(SOURCE_REPO) $(DATA_SOURCE)
 
-validate:
+validate: clean prepare fetch
 	$(MAKE) -C check all
 
-csv:
+csv: validate
 	$(MAKE) -C csv_export all
