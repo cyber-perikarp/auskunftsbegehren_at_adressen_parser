@@ -1,4 +1,0 @@
-qrcode[pil]
-weasyprint
-jinja2
-logzero
